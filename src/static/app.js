@@ -892,6 +892,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Animated Git-style branch lines background
+// Draws slowly scrolling lines with dots on the page background,
+// like the branch diagrams you see in version control tools.
 (function initGitBranchAnimation() {
   const canvas = document.getElementById("git-branches-canvas");
   if (!canvas) return;
@@ -904,9 +906,11 @@ document.addEventListener("DOMContentLoaded", () => {
   resize();
   window.addEventListener("resize", resize);
 
-  // A "node" represents a commit point on a branch line
+  // Number of vertical lines spread across the page
   const BRANCH_COUNT = 6;
+  // Vertical distance between the circle markers on each line
   const NODE_SPACING = 80;
+  // How fast the animation scrolls (pixels per frame)
   const SPEED = 0.3;
 
   // Generate branch lanes spread across the canvas width
@@ -954,7 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.lineTo(branch.x, canvas.height);
       ctx.stroke();
 
-      // Draw commit nodes along the branch
+      // Draw small circle markers along the line (these represent commits)
       let nodeColor = lineColors[idx % lineColors.length].replace(
         /[\d.]+\)$/,
         "0.6)"
@@ -965,12 +969,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const startY = (animOffset - branch.offset) % NODE_SPACING;
       for (let y = startY; y < canvas.height + NODE_SPACING; y += NODE_SPACING) {
-        // Commit dot
+        // Circle marker
         ctx.beginPath();
         ctx.arc(branch.x, y, 4, 0, Math.PI * 2);
         ctx.fill();
 
-        // Occasionally draw a branch-off connector to the next lane
+        // Occasionally draw a curved connector to the next lane (like a branch merge)
         if (idx < BRANCH_COUNT - 1 && Math.sin((y + branch.offset) * 0.05) > 0.6) {
           const nextX = branches[idx + 1].x;
           ctx.beginPath();
