@@ -1,0 +1,56 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "./scripts/session-start.sh",
+        "windows": "powershell -ExecutionPolicy Bypass -File ./scripts/session-start.ps1",
+        "cwd": ".",
+        "timeout": 10
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "./scripts/log-prompt.sh",
+        "windows": "powershell -ExecutionPolicy Bypass -File ./scripts/log-prompt.ps1",
+        "cwd": ".",
+        "env": {
+          "LOG_LEVEL": "INFO"
+        }
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "./scripts/security-check.sh",
+        "windows": "powershell -ExecutionPolicy Bypass -File ./scripts/security-check.ps1",
+        "cwd": ".",
+        "timeout": 15
+      },
+      {
+        "type": "command",
+        "command": "./scripts/log-tool-use.sh",
+        "windows": "powershell -ExecutionPolicy Bypass -File ./scripts/log-tool-use.ps1",
+        "cwd": "."
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "./scripts/log-tool-result.sh",
+        "windows": "powershell -ExecutionPolicy Bypass -File ./scripts/log-tool-result.ps1",
+        "cwd": "."
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./scripts/cleanup.sh",
+        "windows": "powershell -ExecutionPolicy Bypass -File ./scripts/cleanup.ps1",
+        "cwd": ".",
+        "timeout": 60
+      }
+    ]
+  }
+}
