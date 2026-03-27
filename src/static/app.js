@@ -34,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
     technology: { label: "Technology", color: "#e8eaf6", textColor: "#3949ab" },
   };
 
+  // School name for share messages
+  const SCHOOL_NAME = document.querySelector("header h1").textContent.trim();
+
   // State for activities and filters
   let allActivities = {};
   let currentFilter = "all";
@@ -569,6 +572,15 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-section">
+        <span class="share-label">Share:</span>
+        <div class="share-buttons">
+          <button class="share-btn share-twitter" data-activity="${name}" aria-label="Share on Twitter">𝕏</button>
+          <button class="share-btn share-facebook" data-activity="${name}" aria-label="Share on Facebook">f</button>
+          <button class="share-btn share-whatsapp" data-activity="${name}" aria-label="Share on WhatsApp">💬</button>
+          <button class="share-btn share-copy" data-activity="${name}" aria-label="Copy link">🔗</button>
+        </div>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -587,7 +599,42 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Add click handlers for share buttons
+    activityCard.querySelector(".share-twitter").addEventListener("click", () => shareActivity(name, "twitter"));
+    activityCard.querySelector(".share-facebook").addEventListener("click", () => shareActivity(name, "facebook"));
+    activityCard.querySelector(".share-whatsapp").addEventListener("click", () => shareActivity(name, "whatsapp"));
+    activityCard.querySelector(".share-copy").addEventListener("click", (e) => shareActivity(name, "copy", e.currentTarget));
+
     activitiesList.appendChild(activityCard);
+  }
+
+  // Function to share an activity on social media
+  function shareActivity(activityName, platform, buttonEl) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
+    const shareText = `Check out "${activityName}" at ${SCHOOL_NAME}! Join this extracurricular activity.`;
+
+    const urls = {
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`,
+    };
+
+    if (platform === "copy") {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        const original = buttonEl.textContent;
+        buttonEl.textContent = "✓";
+        buttonEl.classList.add("share-copy-success");
+        setTimeout(() => {
+          buttonEl.textContent = original;
+          buttonEl.classList.remove("share-copy-success");
+        }, 2000);
+      }).catch(() => {
+        alert("Could not copy link. Please copy the URL from your browser's address bar.");
+      });
+    } else {
+      window.open(urls[platform], "_blank", "noopener,noreferrer");
+    }
   }
 
   // Event listeners for search and filter
