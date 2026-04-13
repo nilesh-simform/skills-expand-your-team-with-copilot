@@ -890,3 +890,114 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeFilters();
   fetchActivities();
 });
+
+// Animated Git-style branch lines background
+// Draws slowly scrolling lines with dots on the page background,
+// like the branch diagrams you see in version control tools.
+(function initGitBranchAnimation() {
+  const canvas = document.getElementById("git-branches-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  // Number of vertical lines spread across the page
+  const BRANCH_COUNT = 6;
+  // Vertical distance between the circle markers on each line
+  const NODE_SPACING = 80;
+  // How fast the animation scrolls (pixels per frame)
+  const SPEED = 0.3;
+
+  // Generate branch lanes spread across the canvas width
+  function makeBranches() {
+    const branches = [];
+    for (let i = 0; i < BRANCH_COUNT; i++) {
+      const x = (canvas.width / (BRANCH_COUNT + 1)) * (i + 1);
+      const offset = Math.random() * canvas.height;
+      branches.push({ x, offset });
+    }
+    return branches;
+  }
+
+  let branches = makeBranches();
+  window.addEventListener("resize", () => {
+    branches = makeBranches();
+  });
+
+  // Color palette matching school colors (lime green shades)
+  const lineColors = [
+    "rgba(50, 205, 50, 0.25)",
+    "rgba(34, 139, 34, 0.20)",
+    "rgba(93, 222, 93, 0.18)",
+    "rgba(0, 200, 83, 0.22)",
+    "rgba(105, 255, 87, 0.15)",
+    "rgba(32, 178, 34, 0.20)",
+  ];
+
+  let animOffset = 0;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    animOffset = (animOffset + SPEED) % NODE_SPACING;
+
+    branches.forEach((branch, idx) => {
+      const color = lineColors[idx % lineColors.length];
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+
+      // Draw the main vertical branch line
+      ctx.beginPath();
+      ctx.moveTo(branch.x, 0);
+      ctx.lineTo(branch.x, canvas.height);
+      ctx.stroke();
+
+      // Draw small circle markers along the line (these represent commits)
+      let nodeColor = lineColors[idx % lineColors.length].replace(
+        /[\d.]+\)$/,
+        "0.6)"
+      );
+      ctx.fillStyle = nodeColor;
+      ctx.strokeStyle = nodeColor;
+      ctx.lineWidth = 1.5;
+
+      const startY = (animOffset - branch.offset) % NODE_SPACING;
+      for (let y = startY; y < canvas.height + NODE_SPACING; y += NODE_SPACING) {
+        // Circle marker
+        ctx.beginPath();
+        ctx.arc(branch.x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Occasionally draw a curved connector to the next lane (like a branch merge)
+        if (idx < BRANCH_COUNT - 1 && Math.sin((y + branch.offset) * 0.05) > 0.6) {
+          const nextX = branches[idx + 1].x;
+          ctx.beginPath();
+          ctx.strokeStyle = lineColors[(idx + 1) % lineColors.length];
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.moveTo(branch.x, y);
+          ctx.bezierCurveTo(
+            branch.x + (nextX - branch.x) * 0.4,
+            y,
+            branch.x + (nextX - branch.x) * 0.6,
+            y + NODE_SPACING * 0.8,
+            nextX,
+            y + NODE_SPACING * 0.8
+          );
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
